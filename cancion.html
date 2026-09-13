@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Reproductor</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:linear-gradient(180deg,#222,#111);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+}
+
+.player{
+    width:400px;
+    background:#181818;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 0 30px rgba(0,0,0,.5);
+}
+
+.cover{
+    width:100%;
+    height:300px;
+    overflow:hidden;
+    border-radius:20px;
+}
+
+.cover img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.song-info{
+    text-align:center;
+    margin:20px 0;
+}
+
+.song-title{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.progress-container{
+    width:100%;
+    height:8px;
+    background:#333;
+    border-radius:20px;
+    overflow:hidden;
+    margin:20px 0;
+}
+
+.progress{
+    width:0%;
+    height:100%;
+    background:#1db954;
+}
+
+.time{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:#aaa;
+    margin-top:5px;
+}
+
+.controls{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:15px;
+    margin-top:20px;
+}
+
+.controls button{
+    border:none;
+    cursor:pointer;
+    color:white;
+}
+
+.secondary-btn{
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    background:#333;
+    font-size:18px;
+}
+
+.play-btn{
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:#1db954;
+    font-size:28px;
+}
+
+.playlist{
+    margin-top:25px;
+}
+
+.track{
+    background:#222;
+    padding:12px;
+    border-radius:12px;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.track:hover{
+    background:#2c2c2c;
+}
+
+.track.active{
+    border-left:4px solid #1db954;
+}
+</style>
+</head>
+<body>
+
+<div class="player">
+
+    <div class="cover">
+        <img src="img/portada.jpg" alt="">
+    </div>
+
+    <div class="song-info">
+        <div class="song-title" id="title">
+            Messi
+        </div>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="time">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+    </div>
+
+    <div class="controls">
+        <button class="secondary-btn" id="prev">⏮</button>
+        <button class="play-btn" id="play">▶</button>
+        <button class="secondary-btn" id="next">⏭</button>
+    </div>
+
+    <div class="playlist">
+
+        <div class="track active" data-index="0">
+            🎵 Messi
+        </div>
+
+        <div class="track" data-index="1">
+            🎵 EPILOGUE _ Young Forever
+        </div>
+
+        <div class="track" data-index="2">
+            🎵 Samsung
+        </div>
+
+    </div>
+
+    <audio id="audio"></audio>
+
+</div>
+
+<script>
+const songs = [
+{
+    // NOMBRE QUE SE MOSTRARÁ EN EL REPRODUCTOR
+    title: "Messi",
+
+    // ARCHIVO MP3 DENTRO DE LA CARPETA audi
+    file: "audi/cancion1.mp3"
+},
+{
+    title: "EPILOGUE _ Young Forever",
+    file: "audi/BTS (방탄소년단) 'EPILOGUE _ Young Forever' Official MV.mp3"
+},
+{
+    title: "Samsung",
+    file: "audi/BTS (방탄소년단) 'Dynamite' Official MV.mp3.mp3"
+}
+];
+
+let currentSong = 0;
+
+const audio = document.getElementById("audio");
+const title = document.getElementById("title");
+const playBtn = document.getElementById("play");
+const progress = document.getElementById("progress");
+const tracks = document.querySelectorAll(".track");
+
+function loadSong(index){
+
+    currentSong = index;
+
+    audio.src = songs[index].file; 
+
+    title.textContent = songs[index].title;
+
+    tracks.forEach(track=>{
+        track.classList.remove("active");
+    });
+
+    tracks[index].classList.add("active");
+}
+
+function playSong(){
+    audio.play();
+}
+
+function pauseSong(){
+    audio.pause();
+}
+
+playBtn.addEventListener("click",()=>{
+
+    if(audio.paused){
+        playSong();
+    }else{
+        pauseSong();
+    }
+
+});
+
+audio.addEventListener("play",()=>{
+    playBtn.textContent = "⏸";
+});
+
+audio.addEventListener("pause",()=>{
+    playBtn.textContent = "▶";
+});
+
+document.getElementById("next").addEventListener("click",()=>{
+
+    currentSong++;
+
+    if(currentSong >= songs.length){
+        currentSong = 0;
+    }
+
+    loadSong(currentSong);
+    playSong();
+});
+
+document.getElementById("prev").addEventListener("click",()=>{
+
+    currentSong--;
+
+    if(currentSong < 0){
+        currentSong = songs.length - 1;
+    }
+
+    loadSong(currentSong);
+    playSong();
+});
+
+tracks.forEach(track=>{
+
+    track.addEventListener("click",()=>{
+
+        loadSong(Number(track.dataset.index));
+        playSong();
+
+    });
+
+});
+
+audio.addEventListener("timeupdate",()=>{
+
+    const percent =
+        (audio.currentTime / audio.duration) * 100;
+
+    progress.style.width = percent + "%";
+
+    document.getElementById("currentTime").textContent =
+        formatTime(audio.currentTime);
+
+});
+
+audio.addEventListener("loadedmetadata",()=>{
+
+    document.getElementById("duration").textContent =
+        formatTime(audio.duration);
+
+});
+
+audio.addEventListener("ended",()=>{
+
+    document.getElementById("next").click();
+
+});
+
+function formatTime(seconds){
+
+    if(isNaN(seconds)) return "0:00";
+
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+
+    return min + ":" + (sec < 10 ? "0" + sec : sec);
+
+}
+
+loadSong(0);
+
+</script>
+
+</body>
+</html>
